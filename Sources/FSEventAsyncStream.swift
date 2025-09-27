@@ -17,10 +17,10 @@ public struct FSEventAsyncStream : AsyncSequence {
 		private let eventStream: FSEventStream?
 		private var streamIterator: AsyncStream<FSEvent>.Iterator
 		
-		init(path: String, flags: FSEventStreamCreateFlags) {
+		init(paths: [String], flags: FSEventStreamCreateFlags) {
 			let (stream, continuation) = AsyncStream<FSEvent>.makeStream()
 			
-			self.eventStream = FSEventStream(path: path, fsEventStreamFlags: flags, callback: { _, event in
+			self.eventStream = FSEventStream(paths: paths, fsEventStreamFlags: flags, callback: { _, event in
 				continuation.yield(event)
 			})
 			
@@ -38,16 +38,21 @@ public struct FSEventAsyncStream : AsyncSequence {
 		
 	}
 	
-	public let path: String
+	public let paths: [String]
 	public let flags: FSEventStreamCreateFlags
 	
+	public init(paths: [String], flags: FSEventStreamCreateFlags = FSEventStreamCreateFlags(kFSEventStreamCreateFlagNone)) {
+		self.paths = paths
+		self.flags = flags
+	}
+	
 	public init(path: String, flags: FSEventStreamCreateFlags = FSEventStreamCreateFlags(kFSEventStreamCreateFlagNone)) {
-		self.path = path
+		self.paths = [path]
 		self.flags = flags
 	}
 	
 	public func makeAsyncIterator() -> FSEventAsyncIterator {
-		FSEventAsyncIterator(path: path, flags: flags)
+		FSEventAsyncIterator(paths: paths, flags: flags)
 	}
 	
 }
